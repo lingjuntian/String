@@ -1,0 +1,203 @@
+package com.util;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+
+/**
+ * 
+ * @ClassName: Similarity
+ * @Description: 字符串相似度工具类
+ * @author: zheyin
+ * @date: 2017年5月31日 上午11:18:15
+ */
+public class Similarity {
+	private static Map<Object, int[]> vectorMap;
+
+	/**
+	 * 
+	 * @Description: 中文字符
+	 * @param string1
+	 * @param string2
+	 * @author: zheyin
+	 * @param <T>
+	 * @date: 2017年5月31日上午10:39:50
+	 */
+	private static void init(char[] string1, char[] string2) {
+		int[] tempArray = null;
+		vectorMap = new HashMap<Object, int[]>();
+		for (Object obj1 : string1) {
+			if (vectorMap.containsKey(obj1)) {
+				vectorMap.get(obj1)[0]++;
+			} else {
+				tempArray = new int[2];
+				tempArray[0] = 1;
+				tempArray[1] = 0;
+				vectorMap.put(obj1, tempArray);
+			}
+		}
+		for (Object obj2 : string2) {
+			if (vectorMap.containsKey(obj2)) {
+				vectorMap.get(obj2)[1]++;
+			} else {
+				tempArray = new int[2];
+				tempArray[0] = 0;
+				tempArray[1] = 1;
+				vectorMap.put(obj2, tempArray);
+			}
+		}
+	}
+
+	/**
+	 * 
+	 * @Description: 英文单词
+	 * @param string1
+	 * @param string2
+	 * @author: zheyin
+	 * @date: 2017年6月6日下午2:57:43
+	 */
+	private static void init(Object[] string1, Object[] string2) {
+		int[] tempArray = null;
+		vectorMap = new HashMap<Object, int[]>();
+		for (Object obj1 : string1) {
+			obj1 = obj1.toString().toLowerCase();
+			if (vectorMap.containsKey(obj1)) {
+				vectorMap.get(obj1)[0]++;
+			} else {
+				tempArray = new int[2];
+				tempArray[0] = 1;
+				tempArray[1] = 0;
+				vectorMap.put(obj1, tempArray);
+			}
+		}
+		for (Object obj2 : string2) {
+			obj2 = obj2.toString().toLowerCase();
+			if (vectorMap.containsKey(obj2)) {
+				vectorMap.get(obj2)[1]++;
+			} else {
+				tempArray = new int[2];
+				tempArray[0] = 0;
+				tempArray[1] = 1;
+				vectorMap.put(obj2, tempArray);
+			}
+		}
+	}
+
+	/**
+	 * 
+	 * @Description: 中文语句，求余弦相似度，值越接近1，相似度越高
+	 * @param string1
+	 * @param string2
+	 * @return
+	 * @author: zheyin
+	 * @date: 2017年5月31日上午11:37:22
+	 */
+	public static double sim(String string1, String string2) {
+		init(string1.toCharArray(), string2.toCharArray());
+		double result = 0;
+		result = pointMulti(vectorMap) / sqrtMulti(vectorMap);
+		return result;
+	}
+
+	/**
+	 * 
+	 * @Description: 英语语句，余弦相似度，值越接近1，相似度越高
+	 * @param string1
+	 * @param string2
+	 * @return
+	 * @author: zheyin
+	 * @date: 2017年6月6日下午4:17:19
+	 */
+	public static double sim(Object[] string1, Object[] string2) {
+		init(string1, string2);
+		double result = 0;
+		result = pointMulti(vectorMap) / sqrtMulti(vectorMap);
+		return result;
+	}
+
+	private static double sqrtMulti(Map<Object, int[]> paramMap) {
+		double result = 0;
+		result = squares(paramMap);
+		result = Math.sqrt(result);
+		return result;
+	}
+
+	/** 求平方和 */
+	private static double squares(Map<Object, int[]> paramMap) {
+		double result1 = 0;
+		double result2 = 0;
+		Set<Object> keySet = paramMap.keySet();
+		for (Object obj : keySet) {
+			int temp[] = paramMap.get(obj);
+			result1 += (temp[0] * temp[0]);
+			result2 += (temp[1] * temp[1]);
+		}
+		return result1 * result2;
+	}
+
+	/** 点乘法 */
+	private static double pointMulti(Map<Object, int[]> paramMap) {
+		double result = 0;
+		Set<Object> keySet = paramMap.keySet();
+		for (Object obj : keySet) {
+			int temp[] = paramMap.get(obj);
+			result += (temp[0] * temp[1]);
+		}
+		return result;
+	}
+
+	/**
+	 * 判断字符是否是中文
+	 *
+	 * @param c
+	 *            字符
+	 * @return 是否是中文
+	 */
+	public static boolean isChinese(char c) {
+		Character.UnicodeBlock ub = Character.UnicodeBlock.of(c);
+		if (ub == Character.UnicodeBlock.CJK_UNIFIED_IDEOGRAPHS
+				|| ub == Character.UnicodeBlock.CJK_COMPATIBILITY_IDEOGRAPHS
+				|| ub == Character.UnicodeBlock.CJK_UNIFIED_IDEOGRAPHS_EXTENSION_A
+				|| ub == Character.UnicodeBlock.GENERAL_PUNCTUATION
+				|| ub == Character.UnicodeBlock.CJK_SYMBOLS_AND_PUNCTUATION
+				|| ub == Character.UnicodeBlock.HALFWIDTH_AND_FULLWIDTH_FORMS) {
+			return true;
+		}
+		return false;
+	}
+
+	/**
+	 * 
+	 * @Description: 判断字符串是否含有中文
+	 * @param str
+	 * @return
+	 * @author: zheyin
+	 * @date: 2017年6月6日下午4:01:09
+	 */
+	public static boolean isChinese(String str) {
+		char[] charArray = str.toCharArray();
+		for (char c : charArray) {
+			if (isChinese(c)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public static void main(String[] args) {
+		String s1 = "客户腾讯科技";
+		String s2 = "客户深圳腾讯";
+		// String s2 = "上海长江轮船公司吴淞船厂";
+		System.out.println(Similarity.sim(s1, s2));
+
+		String[] s3 = { "TEST", "ingdan", "sass" };
+		String[] s4 = { "ingdan", "result", "test" };
+		System.out.println(Similarity.sim(s3, s4));
+
+		String name = "Suzhou Dibea Electrical Technology 的Co., Ltd.";
+		if (!Similarity.isChinese(name)) {
+			System.out.println("123");
+		}
+	}
+
+}
