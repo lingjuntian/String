@@ -187,7 +187,6 @@ public class Similarity {
 	public static void main(String[] args) {
 		String s1 = "客户腾讯科技";
 		String s2 = "客户深圳腾讯";
-		// String s2 = "上海长江轮船公司吴淞船厂";
 		System.out.println(Similarity.sim(s1, s2));
 
 		String[] s3 = { "TEST", "ingdan", "sass" };
